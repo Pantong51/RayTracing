@@ -1,6 +1,7 @@
 #include <iostream>
 #include <fstream>
 #include <string>
+#include "vec3.h"
 
 int main()
 {
@@ -14,12 +15,10 @@ int main()
 	{
 		for (int i = 0; i < NumberOfX; i++)
 		{
-			float r = float(i) / float(NumberOfX);
-			float g = float(j) / float(NumberOfY);
-			float b = 0.2;
-			int ir = int(255.99*r);
-			int ig = int(255.99*g);
-			int ib = int(255.99*b);
+			vec3 col(float(i) / float(NumberOfX), float(j) / float(NumberOfY), 0.2);
+			int ir = int(255.99*col[0]);
+			int ig = int(255.99*col[1]);
+			int ib = int(255.99*col[2]);
 			std::cout << ir << " " << ig << " " << ib << "\n";
 		}
 	}
