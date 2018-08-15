@@ -1,4 +1,6 @@
 #pragma once
+#ifndef VEC3H
+#define VEC3H
 
 #include <math.h>
 #include <stdlib.h>
@@ -158,3 +160,4 @@ inline vec3 unit_vector(vec3 v)
 {
 	return v / v.length();
 }
+#endif
