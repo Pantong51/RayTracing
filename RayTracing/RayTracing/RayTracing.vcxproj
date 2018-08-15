@@ -115,8 +115,10 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="RayTracing.cpp" />
-    <ClCompile Include="vec3.cpp" />
+    <ClCompile Include="Main.cc" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="vec3.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

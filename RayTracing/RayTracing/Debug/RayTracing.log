@@ -1,3 +1,0 @@
-﻿  RayTracing.cpp
-d:\learningprojects\raytracing\raytracing\raytracing\raytracing.cpp(19): warning C4305: 'initializing': truncation from 'double' to 'float'
-  RayTracing.vcxproj -> D:\LearningProjects\RayTracing\RayTracing\Debug\RayTracing.exe
