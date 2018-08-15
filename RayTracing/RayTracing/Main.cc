@@ -36,8 +36,8 @@ vec3 color(const ray& r)
 
 int main()
 {
-	int NumberOfX = 200;
-	int NumberOfY = 100;
+	int NumberOfX = 1920;
+	int NumberOfY = 1080;
 	std::ofstream out("out.ppm");
 	std::streambuf *coutbuf = std::cout.rdbuf();
 	std::cout.rdbuf(out.rdbuf());
@@ -55,7 +55,6 @@ int main()
 			float u = float(i) / float(NumberOfX);
 			float v = float(j) / float(NumberOfY);
 			ray r(origin, lower_left_corner + (u * horizontal) + (v * vertical));
-			//vec3 col(float(i) / float(NumberOfX), float(j) / float(NumberOfY), 0.2);
 			vec3 col = color(r);
 			int ir = int(255.99*col[0]);
 			int ig = int(255.99*col[1]);
