@@ -2,7 +2,7 @@
 #include <fstream>
 #include <string>
 
-int main() 
+int main()
 {
 	int NumberOfX = 200;
 	int NumberOfY = 100;
