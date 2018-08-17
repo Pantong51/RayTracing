@@ -4,13 +4,14 @@
 #include "sphere.h"
 #include "hitablelist.h"
 #include "float.h"
+#include "camera.h"
+#include <stdlib.h>
 
 vec3 color(const ray& r, hitable *world)
 {
 	hit_record rec;
 	if (world->hit(r, 0.0f, FLT_MAX, rec))
 	{
-		printf("Hello World");
 		return 0.5*vec3(rec.normal.x() + 1, rec.normal.y() + 1, rec.normal.z() + 1);
 	}
 	else
@@ -25,15 +26,19 @@ int main()
 {
 	int NumberOfX = 200;
 	int NumberOfY = 100;
+	int NumberOfS = 100;
 	std::ofstream out("out.ppm");
 	std::streambuf *coutbuf = std::cout.rdbuf();
 	std::cout.rdbuf(out.rdbuf());
 	std::cout << "P3\n" << NumberOfX << " " << NumberOfY << "\n255\n";
 
+	/*
 	vec3 lower_left_corner(-2.0, -1.0, -1.0);
 	vec3 horizontal(4.0, 0.0, 0.0);
 	vec3 vertical(0.0, 2.0, 0.0);
 	vec3 origin(0.0, 0.0, 0.0);
+	*/
+	camera cam;
 
 	hitable *list[2];
 	list[0] = new sphere(vec3(0, 0, -1), 0.5);
@@ -44,13 +49,19 @@ int main()
 	{
 		for (int i = 0; i < NumberOfX; i++)
 		{
-			float u = float(i) / float(NumberOfX);
-			float v = float(j) / float(NumberOfY);
-			ray r(origin, lower_left_corner + (u * horizontal) + (v * vertical));
+			vec3 col(0, 0, 0);
+			for (int s = 0; s < NumberOfS; s++)
+			{
+				float u = float(i + (double)rand() / RAND_MAX) / float(NumberOfX);
+				float v = float(j+ (double)rand() / RAND_MAX) / float(NumberOfY);
+				//ray r(origin, lower_left_corner + (u * horizontal) + (v * vertical));
+				ray r = cam.get_ray(u, v);
 
-			vec3 p = r.point_at_parameter(2.0);
-			vec3 col = color(r, world);
+				vec3 p = r.point_at_parameter(2.0);
+				col += color(r, world);
+			}
 
+			col /= float(NumberOfS);
 			int ir = int(255.99*col[0]);
 			int ig = int(255.99*col[1]);
 			int ib = int(255.99*col[2]);
@@ -58,4 +69,5 @@ int main()
 			std::cout << ir << " " << ig << " " << ib << "\n";
 		}
 	}
+	system("PAUSE");
 }
