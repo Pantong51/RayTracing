@@ -5,14 +5,34 @@
 #include "hitablelist.h"
 #include "float.h"
 #include "camera.h"
+#include "material.h"
 #include <stdlib.h>
+#include <thread>
+#include <future>
 
-vec3 color(const ray& r, hitable *world)
+
+float getRandomFloat()
+{
+	float a = (float)rand() / RAND_MAX;
+	float b = (float)rand() / RAND_MAX;
+	return a*b;
+}
+
+vec3 color(const ray& r, hitable *world, int depth)
 {
 	hit_record rec;
-	if (world->hit(r, 0.0f, FLT_MAX, rec))
+	if (world->hit(r, 0.0001f, FLT_MAX, rec))
 	{
-		return 0.5*vec3(rec.normal.x() + 1, rec.normal.y() + 1, rec.normal.z() + 1);
+		ray scattered;
+		vec3 attenuation;
+		if (depth < 50 && rec.mat_ptr->scatter(r, rec, attenuation, scattered))
+		{
+			return attenuation * color(scattered, world, depth + 1);
+		}
+		else
+		{
+			return vec3(0, 0, 0);
+		}
 	}
 	else
 	{
@@ -22,31 +42,166 @@ vec3 color(const ray& r, hitable *world)
 	}
 }
 
+hitable *random_scene()
+{
+	int n = 500;
+	hitable **list = new hitable *[n + 1];
+	list[0] = new sphere(vec3(0, -1000, 0), 1000, new lambertian(vec3(0.5, 0.5, 0.5)));
+	int i = 1;
+	for (int a = -11; a < 11; a++)
+	{
+		for (int b = -11; b < 11; b++)
+		{
+			float choose_mat = (double)rand() / RAND_MAX;
+			vec3 center(a + 0.9*(float)rand() / RAND_MAX, 0.2, b + 0.9*(double)rand() / RAND_MAX);
+			if (choose_mat < 0.8)
+			{
+				list[i++] = new sphere(center, 0.2, new lambertian(vec3(getRandomFloat(), getRandomFloat(), getRandomFloat())));
+			}
+			else if (choose_mat < 0.95)
+			{
+				list[i++] = new sphere(center, 0.2, new metal(vec3((0.5*1+ (float)rand() / RAND_MAX), (0.5 * 1 + (float)rand() / RAND_MAX), (0.5 * (float)rand() / RAND_MAX))));
+			}
+			else
+			{
+				list[i++] = new sphere(center, 0.2, new dielectric(1.5));
+			}
+		}
+	}
+	list[i++] = new sphere(vec3(0, 1, 0), 1.0, new dielectric(1.5));
+	list[i++] = new sphere(vec3(-4, 1, 0), 1.0, new lambertian(vec3(0.4,0.2,0.1)));
+	list[i++] = new sphere(vec3(4, 1, 0), 1.0, new metal(vec3(0.7,0.6,0.5), 0.0));
+	return new hitable_list(list, i);
+}
+
+struct renderdata
+{
+	renderdata() {}
+	renderdata(float a, float b, float c, float astart, float bstart, float cstart, camera &d, hitable *e) { X = a; Y = b; S = c; StartX = astart; StartY = bstart; StartS = cstart; cam = &d; world = e; }
+	float X;
+	float Y;
+	float S;
+	float StartX;
+	float StartY;
+	float StartS;
+	camera *cam;
+	hitable *world;
+	std::string tofile;
+};
+
+std::string render(renderdata *d)
+{
+	renderdata data;
+	data = *d;
+	for (int j = data.Y - 1; j >= data.StartY; j--)
+	{
+		for (int i = data.StartX; i < data.X; i++)
+		{
+			vec3 col(0, 0, 0);
+			for (int s = data.StartS; s < data.S; s++)
+			{
+				float u = float(i + (double)rand() / RAND_MAX) / float(1920);
+				float v = float(j + (double)rand() / RAND_MAX) / float(1080);
+				ray r = data.cam->get_ray(u, v);
+
+				vec3 p = r.point_at_parameter(2.0);
+				col += color(r, data.world, 0);
+			}
+
+			col /= float(data.S);
+			col = vec3(sqrt(col[0]), sqrt(col[1]), sqrt(col[2]));
+			int ir = int(255.99*col[0]);
+			int ig = int(255.99*col[1]);
+			int ib = int(255.99*col[2]);
+
+			data.tofile += std::to_string(ir);
+			data.tofile += " ";
+			data.tofile += std::to_string(ig);
+			data.tofile += " ";
+			data.tofile += std::to_string(ib);
+			data.tofile += "\n";
+		}
+	}
+	return data.tofile;
+}
+
 int main()
 {
 	int NumberOfX = 200;
-	int NumberOfY = 100;
-	int NumberOfS = 100;
+	int NumberOfY = 80;
+	int NumberOfS = 10;
 	std::ofstream out("out.ppm");
 	std::streambuf *coutbuf = std::cout.rdbuf();
 	std::cout.rdbuf(out.rdbuf());
 	std::cout << "P3\n" << NumberOfX << " " << NumberOfY << "\n255\n";
+	vec3 lookfrom(12.f, 2.f, 3.f);
+	vec3 lookat(0.f, 0.f, 0.f);
+	float dist_to_focus = 10.0;
+	float aperture = 0.1;
+	camera cam(lookfrom, lookat, vec3(0,1,0), 20.f, float(NumberOfX/NumberOfY), aperture, dist_to_focus);
+
+	std::string NewString[8];
+	hitable *world = random_scene();
+	int t = 1;
+	int num = 8;
+	renderdata *ts [8];
+	for (t; t <= num; t++)
+	{
+		ts[t - 1] = new renderdata(NumberOfX, (NumberOfY / num)*t, NumberOfS, 0, ((NumberOfY / num)*t) - (NumberOfY / num), 0, cam, world);
+		printf("X: %i %i %i\n", t - 1, (NumberOfX / num)*t, ((NumberOfX / num)*t) - (NumberOfX / num));
+		printf("Y: %i %i %i\n", t - 1, (NumberOfY / num)*t, ((NumberOfY / num)*t) - (NumberOfY / num));
+	}
+
+	auto t0 = std::async(render, ts[0]);
+	auto t1 = std::async(render, ts[1]);
+	auto t2 = std::async(render, ts[2]);
+	auto t3 = std::async(render, ts[3]);
+	auto t4 = std::async(render, ts[4]);
+	auto t5 = std::async(render, ts[5]);
+	auto t6 = std::async(render, ts[6]);
+	auto t7 = std::async(render, ts[7]);
+	std::cout << t7.get();
+	printf("t7 returned\n");
+	std::cout << t6.get();
+	printf("t6 returned\n");
+	std::cout << t5.get();
+	printf("t5 returned\n");
+	std::cout << t4.get();
+	printf("t4 returned\n");
+	std::cout << t3.get();
+	printf("t3 returned\n");
+	std::cout << t2.get();
+	printf("t2 returned\n");
+	std::cout << t1.get();
+	printf("t1 returned\n");
+	std::cout << t0.get();
+	printf("t0 returned\n");
+
+
+
+
+
+
+
+
+	//std::cout << NewString->c_str();
+
+	//file << NewString;
 
 	/*
-	vec3 lower_left_corner(-2.0, -1.0, -1.0);
-	vec3 horizontal(4.0, 0.0, 0.0);
-	vec3 vertical(0.0, 2.0, 0.0);
-	vec3 origin(0.0, 0.0, 0.0);
-	*/
-	camera cam;
+	renderdata one(NumberOfX/4, NumberOfY/4, NumberOfS, 0, 0, 0, cam, world);
+	renderdata two(NumberOfX / 4 + NumberOfX / 4, NumberOfY / 4 + NumberOfY / 4, NumberOfS, NumberOfX/4, NumberOfY/4, NumberOfS, cam, world);
+	renderdata three(NumberOfX / 4 + NumberOfX / 4 + NumberOfX / 4, NumberOfY / 4 + NumberOfY / 4 + NumberOfY / 4, NumberOfS, NumberOfX/4+NumberOfX/4, NumberOfY/4+NumberOfY/4, NumberOfS, cam, world);
+	renderdata four(NumberOfX, NumberOfY, NumberOfS, NumberOfX / 4 + NumberOfX / 4 + NumberOfX / 4 , NumberOfY / 4 + NumberOfY / 4 + NumberOfY /4, NumberOfS, cam, world);
 
-	hitable *list[2];
-	list[0] = new sphere(vec3(0, 0, -1), 0.5);
-	list[1] = new sphere(vec3(0, -100.5, -1), 100);
-	hitable *world = new hitable_list(list, 2);
-
+	auto t1 = std::async(render, one);
+	auto t2 = std::async(render, two);
+	auto t3 = std::async(render, three);
+	auto t4 = std::async(render, four);*/
+	/*
 	for (int j = NumberOfY - 1; j >= 0; j--)
 	{
+
 		for (int i = 0; i < NumberOfX; i++)
 		{
 			vec3 col(0, 0, 0);
@@ -54,20 +209,21 @@ int main()
 			{
 				float u = float(i + (double)rand() / RAND_MAX) / float(NumberOfX);
 				float v = float(j+ (double)rand() / RAND_MAX) / float(NumberOfY);
-				//ray r(origin, lower_left_corner + (u * horizontal) + (v * vertical));
 				ray r = cam.get_ray(u, v);
 
 				vec3 p = r.point_at_parameter(2.0);
-				col += color(r, world);
+				col += color(r, world,0);
 			}
 
 			col /= float(NumberOfS);
+			col = vec3(sqrt(col[0]), sqrt(col[1]), sqrt(col[2]));
 			int ir = int(255.99*col[0]);
 			int ig = int(255.99*col[1]);
 			int ib = int(255.99*col[2]);
 
-			std::cout << ir << " " << ig << " " << ib << "\n";
+			file << ir << " " << ig << " " << ib << "\n";
 		}
-	}
+	}*/
+
 	system("PAUSE");
 }
