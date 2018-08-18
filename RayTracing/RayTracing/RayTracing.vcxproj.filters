@@ -41,7 +41,7 @@
     <ClInclude Include="material.h">
       <Filter>Source Files</Filter>
     </ClInclude>
-    <ClInclude Include="lambertian.h">
+    <ClInclude Include="moving_sphere.h">
       <Filter>Source Files</Filter>
     </ClInclude>
   </ItemGroup>

@@ -9,6 +9,7 @@
 #include <stdlib.h>
 #include <thread>
 #include <future>
+#include "moving_sphere.h"
 
 
 float getRandomFloat()
@@ -44,7 +45,7 @@ vec3 color(const ray& r, hitable *world, int depth)
 
 hitable *random_scene()
 {
-	int n = 500;
+	int n = 50000;
 	hitable **list = new hitable *[n + 1];
 	list[0] = new sphere(vec3(0, -1000, 0), 1000, new lambertian(vec3(0.5, 0.5, 0.5)));
 	int i = 1;
@@ -54,23 +55,26 @@ hitable *random_scene()
 		{
 			float choose_mat = (double)rand() / RAND_MAX;
 			vec3 center(a + 0.9*(float)rand() / RAND_MAX, 0.2, b + 0.9*(double)rand() / RAND_MAX);
-			if (choose_mat < 0.8)
+			if ((center - vec3(4, 0.2, 0)).length() > 0.9)
 			{
-				list[i++] = new sphere(center, 0.2, new lambertian(vec3(getRandomFloat(), getRandomFloat(), getRandomFloat())));
-			}
-			else if (choose_mat < 0.95)
-			{
-				list[i++] = new sphere(center, 0.2, new metal(vec3((0.5*1+ (float)rand() / RAND_MAX), (0.5 * 1 + (float)rand() / RAND_MAX), (0.5 * (float)rand() / RAND_MAX))));
-			}
-			else
-			{
-				list[i++] = new sphere(center, 0.2, new dielectric(1.5));
+				if (choose_mat < 0.8) // diffuse
+				{
+					list[i++] = new moving_sphere(center, center + vec3(0, 0.5*getRandomFloat() / 2, 0), 0.0, 1.0, 0.2, new lambertian(vec3(getRandomFloat(), getRandomFloat(), getRandomFloat())));
+				}
+				else if (choose_mat < 0.95) // metal
+				{
+					list[i++] = new sphere(center, 0.2, new metal(vec3((0.5 * 1 + (float)rand() / RAND_MAX), (0.5 * 1 + (float)rand() / RAND_MAX), (0.5 * (float)rand() / RAND_MAX))));
+				}
+				else // glass
+				{
+					list[i++] = new sphere(center, 0.2, new dielectric(1.5));
+				}
 			}
 		}
 	}
 	list[i++] = new sphere(vec3(0, 1, 0), 1.0, new dielectric(1.5));
-	list[i++] = new sphere(vec3(-4, 1, 0), 1.0, new lambertian(vec3(0.4,0.2,0.1)));
-	list[i++] = new sphere(vec3(4, 1, 0), 1.0, new metal(vec3(0.7,0.6,0.5), 0.0));
+	list[i++] = new sphere(vec3(-4, 1, 0), 1.0, new lambertian(vec3(0.4, 0.2, 0.1)));
+	list[i++] = new sphere(vec3(4, 1, 0), 1.0, new metal(vec3(0.7, 0.6, 0.5), 0.0));
 	return new hitable_list(list, i);
 }
 
@@ -134,18 +138,18 @@ std::string render(renderdata *d)
 
 int main()
 {
-	int NumberOfX = 400;//2250
-	int NumberOfY = 200;//1125
-	int NumberOfS = 50;
+	int NumberOfX = 200;//2250
+	int NumberOfY = 80;//1125
+	int NumberOfS = 100;
 	std::ofstream out("out.ppm");
 	std::streambuf *coutbuf = std::cout.rdbuf();
 	std::cout.rdbuf(out.rdbuf());
 	std::cout << "P3\n" << NumberOfX << " " << NumberOfY << "\n255\n";
-	vec3 lookfrom(12.f, 2.f, 5.f);
-	vec3 lookat(0.f, 0.f, -1.f);
-	float dist_to_focus = 9.0;
-	float aperture = 0.0001;
-	camera cam(lookfrom, lookat, vec3(0,1,0), 30.f, float(NumberOfX/NumberOfY), aperture, dist_to_focus);
+	vec3 lookfrom(13.f, 2.f, 3.f);
+	vec3 lookat(0.f, 0.f, 0.f);
+	float dist_to_focus = 10.0;
+	float aperture = 0.0;
+	camera cam(lookfrom, lookat, vec3(0,1,0), 20.f, float(NumberOfX/NumberOfY), aperture, dist_to_focus, 0.0, 1.0);
 
 	hitable *world = random_scene();
 	int t = 1;
