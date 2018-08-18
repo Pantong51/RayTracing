@@ -77,13 +77,16 @@ hitable *random_scene()
 struct renderdata
 {
 	renderdata() {}
-	renderdata(float a, float b, float c, float astart, float bstart, float cstart, camera &d, hitable *e) { X = a; Y = b; S = c; StartX = astart; StartY = bstart; StartS = cstart; cam = &d; world = e; }
+	renderdata(float a, float b, float c, float astart, float bstart, float cstart, camera &d, hitable *e, int f, float g, float h) { X = a; Y = b; S = c; StartX = astart; StartY = bstart; StartS = cstart; cam = &d; world = e; ThreadName = f; MaxX = g; MaxY = h; }
 	float X;
 	float Y;
 	float S;
 	float StartX;
 	float StartY;
 	float StartS;
+	int ThreadName;
+	float MaxX;
+	float MaxY;
 	camera *cam;
 	hitable *world;
 	std::string tofile;
@@ -91,17 +94,21 @@ struct renderdata
 
 std::string render(renderdata *d)
 {
+	//(float)(((Y - j) - 1) / (Y - MaxY)) * 100)
 	renderdata data;
 	data = *d;
+	int Y = data.Y;
+	int MaxY = data.StartY;
 	for (int j = data.Y - 1; j >= data.StartY; j--)
 	{
+		printf("Thread %i: Progress%: %f\n", data.ThreadName,((float)((Y-j)-1)/(Y- MaxY))*100 );
 		for (int i = data.StartX; i < data.X; i++)
 		{
 			vec3 col(0, 0, 0);
 			for (int s = data.StartS; s < data.S; s++)
 			{
-				float u = float(i + (double)rand() / RAND_MAX) / float(1920);
-				float v = float(j + (double)rand() / RAND_MAX) / float(1080);
+				float u = float(i + (double)rand() / RAND_MAX) / float(data.MaxX);
+				float v = float(j + (double)rand() / RAND_MAX) / float(data.MaxY);
 				ray r = data.cam->get_ray(u, v);
 
 				vec3 p = r.point_at_parameter(2.0);
@@ -127,27 +134,26 @@ std::string render(renderdata *d)
 
 int main()
 {
-	int NumberOfX = 200;
-	int NumberOfY = 80;
-	int NumberOfS = 10;
+	int NumberOfX = 400;//2250
+	int NumberOfY = 200;//1125
+	int NumberOfS = 50;
 	std::ofstream out("out.ppm");
 	std::streambuf *coutbuf = std::cout.rdbuf();
 	std::cout.rdbuf(out.rdbuf());
 	std::cout << "P3\n" << NumberOfX << " " << NumberOfY << "\n255\n";
-	vec3 lookfrom(12.f, 2.f, 3.f);
-	vec3 lookat(0.f, 0.f, 0.f);
-	float dist_to_focus = 10.0;
-	float aperture = 0.1;
-	camera cam(lookfrom, lookat, vec3(0,1,0), 20.f, float(NumberOfX/NumberOfY), aperture, dist_to_focus);
+	vec3 lookfrom(12.f, 2.f, 5.f);
+	vec3 lookat(0.f, 0.f, -1.f);
+	float dist_to_focus = 9.0;
+	float aperture = 0.0001;
+	camera cam(lookfrom, lookat, vec3(0,1,0), 30.f, float(NumberOfX/NumberOfY), aperture, dist_to_focus);
 
-	std::string NewString[8];
 	hitable *world = random_scene();
 	int t = 1;
-	int num = 8;
-	renderdata *ts [8];
+	int num = 15;
+	renderdata *ts [15];
 	for (t; t <= num; t++)
 	{
-		ts[t - 1] = new renderdata(NumberOfX, (NumberOfY / num)*t, NumberOfS, 0, ((NumberOfY / num)*t) - (NumberOfY / num), 0, cam, world);
+		ts[t - 1] = new renderdata(NumberOfX, (NumberOfY / num)*t, NumberOfS, 0, ((NumberOfY / num)*t) - (NumberOfY / num), 0, cam, world, t, NumberOfX, NumberOfY);
 		printf("X: %i %i %i\n", t - 1, (NumberOfX / num)*t, ((NumberOfX / num)*t) - (NumberOfX / num));
 		printf("Y: %i %i %i\n", t - 1, (NumberOfY / num)*t, ((NumberOfY / num)*t) - (NumberOfY / num));
 	}
@@ -160,6 +166,27 @@ int main()
 	auto t5 = std::async(render, ts[5]);
 	auto t6 = std::async(render, ts[6]);
 	auto t7 = std::async(render, ts[7]);
+	auto t8 = std::async(render, ts[8]);
+	auto t9 = std::async(render, ts[9]);
+	auto t10 = std::async(render, ts[10]);
+	auto t11 = std::async(render, ts[11]);
+	auto t12 = std::async(render, ts[12]);
+	auto t13 = std::async(render, ts[13]);
+	auto t14 = std::async(render, ts[14]);
+	std::cout << t14.get();
+	printf("t14 returned\n");
+	std::cout << t13.get();
+	printf("t13 returned\n");
+	std::cout << t12.get();
+	printf("t12 returned\n");
+	std::cout << t11.get();
+	printf("t11 returned\n");
+	std::cout << t10.get();
+	printf("t10 returned\n");
+	std::cout << t9.get();
+	printf("t9 returned\n");
+	std::cout << t8.get();
+	printf("t8 returned\n");
 	std::cout << t7.get();
 	printf("t7 returned\n");
 	std::cout << t6.get();
