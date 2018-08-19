@@ -6,6 +6,7 @@
 
 #include "ray.h"
 #include "hitable.h"
+#include "texture.h"
 
 float schlick(float cosine, float ref_idx) 
 {
@@ -37,11 +38,12 @@ vec3 reflect(const vec3& v, const vec3& n)
 }
 
 
-vec3 random_in_unit_sphere() {
+vec3 random_in_unit_sphere() 
+{
 	vec3 p;
 	do {
 		p = 2.0*vec3(((float)rand() / RAND_MAX), ((float)rand() / RAND_MAX), ((float)rand() / RAND_MAX)) - vec3(1, 1, 1);
-	} while (p.squared_length() >= 1.0);
+	} while (dot(p,p) >= 1.0);
 	return p;
 }
 
@@ -54,26 +56,26 @@ public:
 class lambertian : public material
 {
 public:
-	lambertian(const vec3& a) : albedo(a) {}
+	lambertian(texture *a) : albedo(a) {}
 	virtual bool scatter(const ray& r_in, const hit_record& rec, vec3& attenuation, ray& scattered) const
 	{
 		vec3 target = rec.p + rec.normal + random_in_unit_sphere();
 		scattered = ray(rec.p, target - rec.p, r_in.time());
-		attenuation = albedo;
+		attenuation = albedo->value(0, 0, rec.p);
 		return true;
 	}
-	vec3 albedo;
+	texture *albedo;
 };
 
-class metal : public material
+class metal : public material 
 {
 public:
-	metal(const vec3& a) : albedo(a) { }
-	metal(const vec3& a, float f) : albedo(a) { if (f < 1) fuzz = f; else fuzz = 1; }
-	virtual bool scatter(const ray& r_in, const hit_record& rec, vec3& attenuation, ray& scattered) const
+	metal(const vec3& a) : albedo(a) {}
+	metal(const vec3& a, float f) : albedo(a) { if (f < 1) fuzz = f; else fuzz = 0; }
+	virtual bool scatter(const ray& r_in, const hit_record& rec, vec3& attenuation, ray& scattered) const 
 	{
 		vec3 reflected = reflect(unit_vector(r_in.direction()), rec.normal);
-		scattered = ray(rec.p, reflected + fuzz*random_in_unit_sphere(), r_in.time());
+		scattered = ray(rec.p, reflected + fuzz * random_in_unit_sphere());
 		attenuation = albedo;
 		return (dot(scattered.direction(), rec.normal) > 0);
 	}

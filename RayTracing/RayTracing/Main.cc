@@ -46,8 +46,9 @@ vec3 color(const ray& r, hitable *world, int depth)
 hitable *random_scene()
 {
 	int n = 50000;
+	texture *checker = new checker_texture(new constant_texture(vec3(0.2, 0.3, 0.1)), new constant_texture(vec3(0.9, 0.9, 0.9)));
 	hitable **list = new hitable *[n + 1];
-	list[0] = new sphere(vec3(0, -1000, 0), 1000, new lambertian(vec3(0.5, 0.5, 0.5)));
+	list[0] = new sphere(vec3(0, -1000, 0), 1000, new lambertian(checker));
 	int i = 1;
 	for (int a = -11; a < 11; a++)
 	{
@@ -59,7 +60,7 @@ hitable *random_scene()
 			{
 				if (choose_mat < 0.8) // diffuse
 				{
-					list[i++] = new sphere(center, 0.2f, new lambertian(vec3(getRandomFloat(), getRandomFloat(), getRandomFloat())));
+					list[i++] = new sphere(center, 0.2f, new lambertian(new constant_texture(vec3(getRandomFloat(), getRandomFloat(), getRandomFloat()))));
 				}
 				else if (choose_mat < 0.95) // metal
 				{
@@ -73,7 +74,7 @@ hitable *random_scene()
 		}
 	}
 	list[i++] = new sphere(vec3(0.f, 1.f, 0.f), 1.0f, new dielectric(1.5f));
-	list[i++] = new sphere(vec3(-4.f, 1.f, 0.f), 1.0f, new lambertian(vec3(0.4f, 0.2f, 0.1f)));
+	list[i++] = new sphere(vec3(-4.f, 1.f, 0.f), 1.0f, new lambertian(new constant_texture(vec3(0.4f, 0.2f, 0.1f))));
 	list[i++] = new sphere(vec3(4.f, 1.f, 0.f), 1.0f, new metal(vec3(0.7f, 0.6f, 0.5f), 0.0f));
 	return new hitable_list(list, i);
 }
@@ -138,9 +139,9 @@ std::string render(renderdata *d)
 
 int main()
 {
-	int NumberOfX = 200;//2250
-	int NumberOfY = 80;//1125
-	int NumberOfS = 100;
+	int NumberOfX = 1600;//2250
+	int NumberOfY = 800;//1125
+	int NumberOfS = 300;
 	std::ofstream out("out.ppm");
 	std::streambuf *coutbuf = std::cout.rdbuf();
 	std::cout.rdbuf(out.rdbuf());
@@ -207,54 +208,6 @@ int main()
 	printf("t1 returned\n");
 	std::cout << t0.get();
 	printf("t0 returned\n");
-
-
-
-
-
-
-
-
-	//std::cout << NewString->c_str();
-
-	//file << NewString;
-
-	/*
-	renderdata one(NumberOfX/4, NumberOfY/4, NumberOfS, 0, 0, 0, cam, world);
-	renderdata two(NumberOfX / 4 + NumberOfX / 4, NumberOfY / 4 + NumberOfY / 4, NumberOfS, NumberOfX/4, NumberOfY/4, NumberOfS, cam, world);
-	renderdata three(NumberOfX / 4 + NumberOfX / 4 + NumberOfX / 4, NumberOfY / 4 + NumberOfY / 4 + NumberOfY / 4, NumberOfS, NumberOfX/4+NumberOfX/4, NumberOfY/4+NumberOfY/4, NumberOfS, cam, world);
-	renderdata four(NumberOfX, NumberOfY, NumberOfS, NumberOfX / 4 + NumberOfX / 4 + NumberOfX / 4 , NumberOfY / 4 + NumberOfY / 4 + NumberOfY /4, NumberOfS, cam, world);
-
-	auto t1 = std::async(render, one);
-	auto t2 = std::async(render, two);
-	auto t3 = std::async(render, three);
-	auto t4 = std::async(render, four);*/
-	/*
-	for (int j = NumberOfY - 1; j >= 0; j--)
-	{
-
-		for (int i = 0; i < NumberOfX; i++)
-		{
-			vec3 col(0, 0, 0);
-			for (int s = 0; s < NumberOfS; s++)
-			{
-				float u = float(i + (double)rand() / RAND_MAX) / float(NumberOfX);
-				float v = float(j+ (double)rand() / RAND_MAX) / float(NumberOfY);
-				ray r = cam.get_ray(u, v);
-
-				vec3 p = r.point_at_parameter(2.0);
-				col += color(r, world,0);
-			}
-
-			col /= float(NumberOfS);
-			col = vec3(sqrt(col[0]), sqrt(col[1]), sqrt(col[2]));
-			int ir = int(255.99*col[0]);
-			int ig = int(255.99*col[1]);
-			int ib = int(255.99*col[2]);
-
-			file << ir << " " << ig << " " << ib << "\n";
-		}
-	}*/
 
 	system("PAUSE");
 }
