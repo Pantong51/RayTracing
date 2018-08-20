@@ -44,6 +44,17 @@ vec3 color(const ray& r, hitable *world, int depth)
 	}
 }
 
+hitable *two_Spheres()
+{
+	texture *checker = new checker_texture(new constant_texture(vec3(0.2f, 0.3f, 0.2f)), new constant_texture(vec3(0.9f, 0.9f, 0.9f)));
+	texture *pertext = new noise_texture();
+	int n = 50;
+	hitable **list = new hitable*[2];
+	list[0] = new sphere(vec3(0, -1000, 0), 1000, new lambertian(pertext));
+	list[1] = new sphere(vec3(0, 2, 0), 2, new lambertian(pertext));
+	return new bvh_node(list, 2, 0, 1);
+}
+
 hitable *random_scene()
 {
 	int n = 50000;
@@ -141,20 +152,21 @@ std::string render(renderdata *d)
 
 int main()
 {
-	int NumberOfX = 2010;//2250
-	int NumberOfY = 1005;//1125
-	int NumberOfS = 400;
+	int NumberOfX = 400;//2250
+	int NumberOfY = 200;//1125
+	int NumberOfS = 20;
 	std::ofstream out("out.ppm");
 	std::streambuf *coutbuf = std::cout.rdbuf();
 	std::cout.rdbuf(out.rdbuf());
 	std::cout << "P3\n" << NumberOfX << " " << NumberOfY << "\n255\n";
-	vec3 lookfrom(13.f, 2.f, -3.f);
+	vec3 lookfrom(13.f, 2.f, 3.f);
 	vec3 lookat(0.f, 0.f, 0.f);
 	float dist_to_focus = 10.0;
 	float aperture = 0.001;
-	camera cam(lookfrom, lookat, vec3(0,1,0), 30.f, float(NumberOfX/NumberOfY), aperture, dist_to_focus, 0.0, 1.0);
+	camera cam(lookfrom, lookat, vec3(0,1,0), 20.f, float(NumberOfX/NumberOfY), aperture, dist_to_focus, 0.0, 1.0);
 
-	hitable *world = random_scene();
+	//hitable *world = random_scene();
+	hitable *world = two_Spheres();
 	int t = 1;
 	int num = 15;
 	renderdata *ts [15];

@@ -53,5 +53,8 @@
     <ClInclude Include="texture.h">
       <Filter>Source Files</Filter>
     </ClInclude>
+    <ClInclude Include="perlin.h">
+      <Filter>Source Files</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>
