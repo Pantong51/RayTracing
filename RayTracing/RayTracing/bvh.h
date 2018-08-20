@@ -18,6 +18,63 @@ public:
 	aabb box;
 };
 
+int box_x_compare(const void * a, const void * b)
+{
+	aabb box_left, box_right;
+	hitable *ah = *(hitable**)a;
+	hitable *bh = *(hitable**)b;
+	if (!ah->bounding_box(0, 0, box_left) || !bh->bounding_box(0, 0, box_right))
+	{
+		std::cerr << "no bounding box in bvh_node constructor\n";
+	}
+	if (box_left.min().x() - box_right.min().x() < 0.0)
+	{
+		return -1;
+	}
+	else
+	{
+		return 1;
+	}
+}
+
+int box_y_compare(const void * a, const void * b)
+{
+	aabb box_left, box_right;
+	hitable *ah = *(hitable**)a;
+	hitable *bh = *(hitable**)b;
+	if (!ah->bounding_box(0, 0, box_left) || !bh->bounding_box(0, 0, box_right))
+	{
+		std::cerr << "no bounding box in bvh_node constructor\n";
+	}
+	if (box_left.min().y() - box_right.min().y() < 0.0)
+	{
+		return -1;
+	}
+	else
+	{
+		return 1;
+	}
+}
+
+int box_z_compare(const void * a, const void * b)
+{
+	aabb box_left, box_right;
+	hitable *ah = *(hitable**)a;
+	hitable *bh = *(hitable**)b;
+	if (!ah->bounding_box(0, 0, box_left) || !bh->bounding_box(0, 0, box_right))
+	{
+		std::cerr << "no bounding box in bvh_node constructor\n";
+	}
+	if (box_left.min().z() - box_right.min().z() < 0.0)
+	{
+		return -1;
+	}
+	else
+	{
+		return 1;
+	}
+}
+
 bvh_node::bvh_node(hitable **l, int n, float time0, float time1)
 {
 	int axis = int(3 * ((float)rand() / RAND_MAX));
@@ -53,61 +110,6 @@ bvh_node::bvh_node(hitable **l, int n, float time0, float time1)
 		std::cerr << "no bounding box in bvh_node constructor\n";
 	}
 	box = surrounding_box(box_left, box_right);
-}
-
-int box_x_compare(const void * a, const void * b)
-{
-	aabb box_left, box_right;
-	hitable *ah = *(hitable**)a;
-	hitable *bh = *(hitable**)b;
-	if (!ah->bounding_box(0, 0, box_left) || !bh->bounding_box(0, 0, box_right))
-	{
-		std::cerr << "no bounding box in bvh_node constructor\n";
-	}
-	if (box_left.min().x() - box_right.min().x() < 0.0)
-	{
-		return -1;
-	}
-	else
-	{
-		return 1;
-	}
-}
-int box_y_compare(const void * a, const void * b)
-{
-	aabb box_left, box_right;
-	hitable *ah = *(hitable**)a;
-	hitable *bh = *(hitable**)b;
-	if (!ah->bounding_box(0, 0, box_left) || !bh->bounding_box(0, 0, box_right))
-	{
-		std::cerr << "no bounding box in bvh_node constructor\n";
-	}
-	if (box_left.min().y() - box_right.min().y() < 0.0)
-	{
-		return -1;
-	}
-	else
-	{
-		return 1;
-	}
-}
-int box_z_compare(const void * a, const void * b)
-{
-	aabb box_left, box_right;
-	hitable *ah = *(hitable**)a;
-	hitable *bh = *(hitable**)b;
-	if (!ah->bounding_box(0, 0, box_left) || !bh->bounding_box(0, 0, box_right))
-	{
-		std::cerr << "no bounding box in bvh_node constructor\n";
-	}
-	if (box_left.min().z() - box_right.min().z() < 0.0)
-	{
-		return -1;
-	}
-	else
-	{
-		return 1;
-	}
 }
 
 bool bvh_node::hit(const ray& r, float t_min, float t_max, hit_record& rec) const
