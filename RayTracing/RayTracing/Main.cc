@@ -47,7 +47,7 @@ vec3 color(const ray& r, hitable *world, int depth)
 hitable *two_Spheres()
 {
 	texture *checker = new checker_texture(new constant_texture(vec3(0.2f, 0.3f, 0.2f)), new constant_texture(vec3(0.9f, 0.9f, 0.9f)));
-	texture *pertext = new noise_texture();
+	texture *pertext = new noise_texture(1);
 	int n = 50;
 	hitable **list = new hitable*[2];
 	list[0] = new sphere(vec3(0, -1000, 0), 1000, new lambertian(pertext));
