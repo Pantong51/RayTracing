@@ -2,6 +2,7 @@
 #ifndef SPHEREH
 #define SPHEREH
 #include "hitable.h"
+#include <corecrt_math_defines.h>
 
 class sphere : public hitable
 {
@@ -13,8 +14,15 @@ public:
 	vec3 center;
 	float radius;
 	material *mat_ptr;
+	void get_shpere_uv(const vec3& p, float& u, float& v);
 };
-
+void sphere::get_shpere_uv(const vec3& p, float& u, float& v)
+{
+	float phi = atan2(p.z(), p.x());
+	float theta = asin(p.y());
+	u = 1 - (phi + M_PI) / (2 * M_PI);
+	v = (theta + M_PI / 2) / M_PI;
+}
 bool sphere::hit(const ray& r, float t_min, float t_max, hit_record& rec) const
 {
 	vec3 oc = r.origin() - center;
