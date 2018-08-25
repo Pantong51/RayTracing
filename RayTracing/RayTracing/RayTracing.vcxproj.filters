@@ -56,5 +56,17 @@
     <ClInclude Include="perlin.h">
       <Filter>Source Files</Filter>
     </ClInclude>
+    <ClInclude Include="stb_image.h">
+      <Filter>Source Files</Filter>
+    </ClInclude>
+    <ClInclude Include="aarect.h">
+      <Filter>Source Files</Filter>
+    </ClInclude>
+    <ClInclude Include="box.h">
+      <Filter>Source Files</Filter>
+    </ClInclude>
+    <ClInclude Include="constant_medium.h">
+      <Filter>Source Files</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>

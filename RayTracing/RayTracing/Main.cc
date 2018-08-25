@@ -11,6 +11,13 @@
 #include <future>
 #include "moving_sphere.h"
 #include "bvh.h"
+#include "stb_image.h"
+#include "aarect.h"
+#include "box.h"
+#include "constant_medium.h"
+#define STB_IMAGE_IMPLEMENTATION
+
+
 
 
 float getRandomFloat()
@@ -27,21 +34,74 @@ vec3 color(const ray& r, hitable *world, int depth)
 	{
 		ray scattered;
 		vec3 attenuation;
+		vec3 emitted = rec.mat_ptr->emitted(rec.u, rec.v, rec.p);
 		if (depth < 50 && rec.mat_ptr->scatter(r, rec, attenuation, scattered))
 		{
-			return attenuation * color(scattered, world, depth + 1);
+			return emitted + attenuation * color(scattered, world, depth + 1);
 		}
 		else
 		{
-			return vec3(0, 0, 0);
+			return emitted;
 		}
 	}
 	else
 	{
-		vec3 unit_direction = unit_vector(r.direction());
-		float t = 0.5f*(unit_direction.y() + 1.0f);
-		return (1.0f - t)*vec3(1.0f, 1.0f, 1.0f) + t * vec3(0.5f, 0.7f, 1.0f);
+		return vec3(0.f, 0.f, 0.f);
 	}
+}
+hitable *cornell_box_smoke()
+{
+	hitable **list = new hitable*[9];
+	int i = 0;
+	material *red = new lambertian(new constant_texture(vec3(0.65, 0.05, 0.05)));
+	material *white = new lambertian(new constant_texture(vec3(0.73, 0.73, 0.73)));
+	material *green = new lambertian(new constant_texture(vec3(0.12, 0.45, 0.15)));
+	material *aMetal = new metal(vec3(0.3f, 0.3f, 1.0f), 0.1f);
+	material *aGlass = new metal(vec3(0.4f, 0.4f, 1.0f), 0.1f);
+	material *light = new diffuse_light(new constant_texture(vec3(4, 4, 4)));
+	list[i++] = new flip_normals(new yz_rect(0, 555, 0, 555, 555, green));
+	list[i++] = new yz_rect(0, 555, 0, 555, 0, red);
+	list[i++] = new xz_rect(113, 443, 127, 432, 554, light);
+	list[i++] = new flip_normals(new xz_rect(0, 555, 0, 555, 555, white));
+	list[i++] = new xz_rect(0, 555, 0, 555, 0, white);
+	list[i++] = new flip_normals(new xy_rect(0, 555, 0, 555, 555, white));
+	list[i++] = new translate(new rotate_y(new box(vec3(0, 0, 0), vec3(165, 165, 165), white), -18), vec3(130, 0, 65));
+	list[i++] = new translate(new rotate_y(new box(vec3(0, 0, 0), vec3(165, 330, 165), aMetal), 15), vec3(265, 0, 295));
+	list[i++] = new sphere(vec3(380, 80, 110), 80, new dielectric(1.1f));
+	return new bvh_node(list, i, 0.0f, 1.0f);
+}
+hitable *cornell_box()
+{
+	hitable **list = new hitable*[9];
+	int i = 0;
+	material *red = new lambertian(new constant_texture(vec3(0.65, 0.05, 0.05)));
+	material *white = new lambertian(new constant_texture(vec3(0.73, 0.73, 0.73)));
+	material *green = new lambertian(new constant_texture(vec3(0.12, 0.45, 0.15)));
+	material *aMetal = new metal(vec3(0.1f,0.1f,0.3f), 0.1f);
+	material *aGlass = new metal(vec3(0.4f, 0.4f, 0.7f), 0.1f);
+	material *light = new diffuse_light(new constant_texture(vec3(4, 4, 4)));
+	list[i++] = new flip_normals(new yz_rect(0, 555, 0, 555, 555, green));
+	list[i++] = new yz_rect(0, 555, 0, 555, 0, red);
+	list[i++] = new xz_rect(113, 443, 127, 432, 554, light);
+	list[i++] = new flip_normals(new xz_rect(0, 555, 0, 555, 555, white));
+	list[i++] = new xz_rect(0, 555, 0, 555, 0, white);
+	list[i++] = new flip_normals(new xy_rect(0, 555, 0, 555, 555, white));
+	list[i++] = new translate(new rotate_y(new box(vec3(0, 0, 0), vec3(165, 165, 165), white), -18), vec3(130, 0, 65));
+	list[i++] = new translate(new rotate_y(new box(vec3(0, 0, 0), vec3(165, 330, 165), aMetal), 15), vec3(265, 0, 295));
+	list[i++] = new sphere(vec3(380, 80, 110), 80, new dielectric(1.1f));
+	return new bvh_node(list, i, 0.0f, 1.0f);
+}
+
+hitable *simple_light()
+{
+	texture *pertext = new noise_texture(4);
+	hitable **list = new hitable*[4];
+	list[0] = new sphere(vec3(0, -1000, 0), 1000, new lambertian(new constant_texture(vec3(0.f, 0.f, 1.f))));
+	list[1] = new sphere(vec3(0, 2, 0), 2, new lambertian(pertext));
+	list[2] = new sphere(vec3(0, 7, 0), 2, new diffuse_light(new constant_texture(vec3(4.f, 4.f, 4.f))));
+	list[3] = new xy_rect(3, 5, 1, 3, -2, new diffuse_light(new constant_texture(vec3(4.f, 4.f, 4.f))));
+	return new bvh_node(list, 4, 0.0f, 1.0f);
+
 }
 
 hitable *two_Spheres()
@@ -152,21 +212,25 @@ std::string render(renderdata *d)
 
 int main()
 {
-	int NumberOfX = 400;//2250
-	int NumberOfY = 200;//1125
-	int NumberOfS = 20;
+	int NumberOfX = 1125;//2250
+	int NumberOfY = 1125;//1125
+	int NumberOfS = 1000;
 	std::ofstream out("out.ppm");
 	std::streambuf *coutbuf = std::cout.rdbuf();
 	std::cout.rdbuf(out.rdbuf());
 	std::cout << "P3\n" << NumberOfX << " " << NumberOfY << "\n255\n";
-	vec3 lookfrom(13.f, 2.f, 3.f);
-	vec3 lookat(0.f, 0.f, 0.f);
+	vec3 lookfrom(278.f, 278.f, -800.f);
+	vec3 lookat(278.f, 278.f, 0.f);
 	float dist_to_focus = 10.0;
-	float aperture = 0.001;
-	camera cam(lookfrom, lookat, vec3(0,1,0), 20.f, float(NumberOfX/NumberOfY), aperture, dist_to_focus, 0.0, 1.0);
+	float aperture = 0.0;
+	float vfov = 40.0;
+	camera cam(lookfrom, lookat, vec3(0,1,0), vfov, float(NumberOfX/NumberOfY), aperture, dist_to_focus, 0.0, 1.0);
 
 	//hitable *world = random_scene();
-	hitable *world = two_Spheres();
+	//hitable *world = two_Spheres();
+	//hitable *world = simple_light();
+	//hitable *world = cornell_box();
+	hitable *world = cornell_box_smoke();
 	int t = 1;
 	int num = 15;
 	renderdata *ts [15];
@@ -223,5 +287,5 @@ int main()
 	std::cout << t0.get();
 	printf("t0 returned\n");
 
-	system("PAUSE");
+	//system("PAUSE");
 }

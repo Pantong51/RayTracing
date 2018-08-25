@@ -59,7 +59,7 @@ public:
 	perlin noise;
 	float scale;
 };
-
+/*
 class image_texture : public texture
 {
 public:
@@ -82,5 +82,5 @@ vec3 image_texture::value(float u, float v, const vec3& p) const
 	float g = int(data[3 * i + 3 * nx*j + 1]) / 255;
 	float b = int(data[3 * i + 3 * nx *j * 2]) / 255;
 	return vec3(r, g, b);
-}
+}*/
 #endif

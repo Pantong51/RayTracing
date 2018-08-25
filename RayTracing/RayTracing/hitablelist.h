@@ -46,7 +46,7 @@ bool hitable_list::bounding_box(float t0, float t1, aabb& box) const
 	}
 	for (int i = 1; i < list_size; i++)
 	{
-		if (list[9]->bounding_box(t0, t1, tempbox))
+		if (list[0]->bounding_box(t0, t1, tempbox))
 		{
 			box = surrounding_box(box, tempbox);
 		}
