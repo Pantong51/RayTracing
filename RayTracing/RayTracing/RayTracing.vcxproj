@@ -118,6 +118,7 @@
     <ClCompile Include="Main.cc">
       <FileType>CppClass</FileType>
     </ClCompile>
+    <ClCompile Include="x2.cc" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="aabb.h" />

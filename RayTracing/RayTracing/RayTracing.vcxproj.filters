@@ -18,6 +18,9 @@
     <ClCompile Include="Main.cc">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="x2.cc">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="vec3.h">

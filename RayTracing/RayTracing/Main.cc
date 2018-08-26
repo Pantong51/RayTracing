@@ -49,6 +49,25 @@ vec3 color(const ray& r, hitable *world, int depth)
 		return vec3(0.f, 0.f, 0.f);
 	}
 }
+hitable *cornell_box_flat()
+{
+	hitable **list = new hitable*[9];
+	int i = 0;
+	material *red = new lambertian(new constant_texture(vec3(0.65, 0.05, 0.05)));
+	material *white = new lambertian(new constant_texture(vec3(0.73, 0.73, 0.73)));
+	material *green = new lambertian(new constant_texture(vec3(0.12, 0.45, 0.15)));
+	material *light = new diffuse_light(new constant_texture(vec3(4, 4, 4)));
+	list[i++] = new flip_normals(new yz_rect(0, 555, 0, 555, 555, green));
+	list[i++] = new yz_rect(0, 555, 0, 555, 0, red);
+	list[i++] = new xz_rect(113, 443, 127, 432, 554, light);
+	list[i++] = new flip_normals(new xz_rect(0, 555, 0, 555, 555, white));
+	list[i++] = new xz_rect(0, 555, 0, 555, 0, white);
+	list[i++] = new flip_normals(new xy_rect(0, 555, 0, 555, 555, white));
+	list[i++] = new translate(new rotate_y(new box(vec3(0, 0, 0), vec3(165, 165, 165), white), -18), vec3(130, 0, 65));
+	list[i++] = new translate(new rotate_y(new box(vec3(0, 0, 0), vec3(165, 330, 165), white), 15), vec3(265, 0, 295));
+	//list[i++] = new sphere(vec3(380, 80, 110), 80, new dielectric(1.1f));
+	return new bvh_node(list, i, 0.0f, 1.0f);
+}
 hitable *cornell_box_smoke()
 {
 	hitable **list = new hitable*[9];
@@ -70,6 +89,8 @@ hitable *cornell_box_smoke()
 	list[i++] = new sphere(vec3(380, 80, 110), 80, new dielectric(1.1f));
 	return new bvh_node(list, i, 0.0f, 1.0f);
 }
+
+
 hitable *cornell_box()
 {
 	hitable **list = new hitable*[9];
@@ -210,6 +231,7 @@ std::string render(renderdata *d)
 	return data.tofile;
 }
 
+/*
 int main()
 {
 	int NumberOfX = 1125;//2250
@@ -288,4 +310,4 @@ int main()
 	printf("t0 returned\n");
 
 	//system("PAUSE");
-}
+}*/
